@@ -1,0 +1,8 @@
+﻿using _305.Application.Base.Response;
+using MediatR;
+using _305.Application.Features.AdminAuthFeatures.Response;
+
+namespace _305.Application.Features.AdminAuthFeatures.Command;
+public class AdminRefreshCommand : IRequest<ResponseDto<LoginResponse>>
+{
+}
