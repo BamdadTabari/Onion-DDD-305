@@ -14,7 +14,7 @@ namespace _305.Application.Base.Handler;
 /// در صورت اعتبارسنجی موفق، عملیات ایجاد از طریق delegate <paramref name="onCreate"/> انجام شده
 /// و سپس Commit به پایگاه داده صورت می‌گیرد.
 /// </remarks>
-public class CreateHandler
+public class CreateHandler   
 {
 	private readonly IUnitOfWork _unitOfWork;
 	private readonly ILogger _logger;
