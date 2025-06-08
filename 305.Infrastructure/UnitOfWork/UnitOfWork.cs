@@ -4,57 +4,111 @@ using _305.Infrastructure.Persistence;
 using _305.Infrastructure.Repository;
 
 namespace _305.Infrastructure.UnitOfWork;
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork : IUnitOfWork, IDisposable
 {
-	private readonly ApplicationDbContext _context;
-	public UnitOfWork(ApplicationDbContext context)
-	{
-		_context = context;
-		BlogCategoryRepository = new BlogCategoryRepository(_context);
-		BlogRepository = new BlogRepository(_context);
-		TokenBlacklistRepository = new TokenBlacklistRepository(context);
-	}
+    private readonly ApplicationDbContext _context;
+    private readonly ILogger<UnitOfWork>? _logger;
 
-	public IBlogCategoryRepository BlogCategoryRepository { get; }
-	public IBlogRepository BlogRepository { get; }
-	public ITokenBlacklistRepository TokenBlacklistRepository { get; set; }
-	/// <summary>
-	/// تلاش برای ذخیره‌سازی تمامی تغییرات در پایگاه داده در قالب یک تراکنش.
-	/// در صورت بروز خطا، تراکنش برگشت داده می‌شود (Rollback).
-	/// </summary>
-	/// <param name="cancellationToken">توکن لغو عملیات برای توقف عملیات به صورت ناهمگام.</param>
-	/// <returns>اگر ذخیره‌سازی با موفقیت انجام شود، مقدار true بازمی‌گرداند؛ در غیر این صورت، false.</returns>
-	public async Task<bool> CommitAsync(CancellationToken cancellationToken = default)
-	{
-		// شروع یک تراکنش جدید در پایگاه داده
-		using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+    private IBlogCategoryRepository? _blogCategoryRepository;
+    private IBlogRepository? _blogRepository;
+    private ITokenBlacklistRepository? _tokenBlacklistRepository;
 
-		try
-		{
-			// ذخیره‌سازی تمام تغییرات انجام‌شده در Context در پایگاه داده
-			await _context.SaveChangesAsync(cancellationToken);
+    private IDbContextTransaction? _transaction;
+    private bool _disposed;
 
-			// در صورت موفقیت‌آمیز بودن ذخیره‌سازی، تراکنش را تأیید کن (Commit)
-			await transaction.CommitAsync(cancellationToken);
+    public UnitOfWork(ApplicationDbContext context, ILogger<UnitOfWork>? logger = null)
+    {
+        _context = context;
+        _logger = logger;
+    }
 
-			return true;
-		}
-		catch
-		{
-			// در صورت وقوع خطا، تراکنش را به حالت اولیه برگردان (Rollback)
-			await transaction.RollbackAsync(cancellationToken);
+    // Lazy Initialization
+    public IBlogCategoryRepository BlogCategoryRepository =>
+        _blogCategoryRepository ??= new BlogCategoryRepository(_context);
 
-			// پرتاب مجدد استثنا برای رسیدگی در لایه بالاتر
-			throw;
-		}
-	}
+    public IBlogRepository BlogRepository =>
+        _blogRepository ??= new BlogRepository(_context);
 
+    public ITokenBlacklistRepository TokenBlacklistRepository =>
+        _tokenBlacklistRepository ??= new TokenBlacklistRepository(_context);
 
+    /// <summary>
+    /// شروع تراکنش به صورت دستی
+    /// </summary>
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_transaction == null)
+        {
+            _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        }
+    }
 
-	// dispose and add to garbage collector
-	public void Dispose()
-	{
-		_context.Dispose();
-		GC.SuppressFinalize(this);
-	}
+    /// <summary>
+    /// ذخیره‌سازی تغییرات و تأیید تراکنش
+    /// </summary>
+    public async Task<bool> CommitAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync(cancellationToken);
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "خطا در هنگام Commit تراکنش");
+
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync(cancellationToken);
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// بازگرداندن تراکنش در صورت نیاز
+    /// </summary>
+    public async Task RollbackAsync(CancellationToken cancellationToken = default)
+    {
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync(cancellationToken);
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
+
+    /// <summary>
+    /// آزادسازی منابع با الگوی Dispose استاندارد
+    /// </summary>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                _transaction?.Dispose();
+                _context.Dispose();
+            }
+
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 }
