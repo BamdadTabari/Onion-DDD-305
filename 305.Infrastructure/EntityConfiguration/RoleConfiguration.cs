@@ -17,7 +17,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder
             .HasMany(x => x.user_roles)
             .WithOne(x => x.role)
-            .HasForeignKey(x => x.roleid)
+            .HasForeignKey(x => x.role_id)
             .OnDelete(DeleteBehavior.Restrict);
 
         #endregion

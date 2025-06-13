@@ -39,7 +39,7 @@ public class AdminLoginCommandHandler(
             // موفقیت در ورود
             user.failed_login_count = 0;
             user.last_login_date_time = DateTime.Now;
-            var role = unitOfWork.UserRoleRepository.FindList(x => x.userid == user.id);
+            var role = unitOfWork.UserRoleRepository.FindList(x => x.user_id == user.id);
             var token = await JwtTokenHelper.GenerateUniqueAccessToken(
                 jwtService,
                 unitOfWork,

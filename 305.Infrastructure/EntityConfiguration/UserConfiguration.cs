@@ -20,7 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder
             .HasMany(x => x.user_roles)
             .WithOne(x => x.user)
-            .HasForeignKey(x => x.userid)
+            .HasForeignKey(x => x.user_id)
             .OnDelete(DeleteBehavior.Cascade);
 
         #endregion

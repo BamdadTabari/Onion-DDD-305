@@ -35,19 +35,19 @@ public class EditUserRoleCommandHandler(IUnitOfWork unitOfWork, IRepository<User
            },
            new ()
            {
-               Rule = async () => await repository.ExistsAsync(x => x.userid == request.userid && x.roleid == request.roleid &&  x.id != request.id),
+               Rule = async () => await repository.ExistsAsync(x => x.user_id == request.user_id && x.role_id == request.role_id &&  x.id != request.id),
                Value = "ارتباط نقش و کاربر",
                IsExistRole = true
            },
            new ()
            {
-               Rule = async () => !(await unitOfWork.UserRepository.ExistsAsync(x => x.id == request.userid)),
+               Rule = async () => !(await unitOfWork.UserRepository.ExistsAsync(x => x.id == request.user_id)),
                Value = "کاربر",
                IsExistRole = true
            },
            new ()
            {
-               Rule = async () => !(await unitOfWork.RoleRepository.ExistsAsync(x => x.id == request.roleid)),
+               Rule = async () => !(await unitOfWork.RoleRepository.ExistsAsync(x => x.id == request.role_id)),
                Value = "نقش",
                IsExistRole = true
            },
@@ -61,8 +61,8 @@ public class EditUserRoleCommandHandler(IUnitOfWork unitOfWork, IRepository<User
                 entity.name = request.name;
                 entity.slug = slug;
                 entity.updated_at = request.updated_at;
-                entity.userid = request.userid;
-                entity.roleid = request.roleid;
+                entity.user_id = request.user_id;
+                entity.role_id = request.role_id;
                 return Task.FromResult(slug);
             },
 

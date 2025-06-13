@@ -8,19 +8,19 @@ public class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
     public void Configure(EntityTypeBuilder<UserRole> builder)
     {
 
-        builder.HasKey(x => new { x.userid, x.roleid, x.id });
+        builder.HasKey(x => new { x.user_id, x.role_id, x.id });
         builder.Property(x => x.slug).IsRequired().HasMaxLength(1000);;
         builder.HasIndex(x => x.slug).IsUnique();
         builder
             .HasOne(x => x.user)
             .WithMany(x => x.user_roles)
-            .HasForeignKey(x => x.userid)
+            .HasForeignKey(x => x.user_id)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .HasOne(x => x.role)
             .WithMany(x => x.user_roles)
-            .HasForeignKey(x => x.roleid)
+            .HasForeignKey(x => x.role_id)
             .OnDelete(DeleteBehavior.Cascade);
 
     }

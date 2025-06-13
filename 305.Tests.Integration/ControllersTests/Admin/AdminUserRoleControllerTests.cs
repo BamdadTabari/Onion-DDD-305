@@ -24,8 +24,8 @@ public class AdminUserRoleControllerTests : BaseControllerTests<CreateUserRoleCo
             {
                 { new StringContent(dto.name), "name" },
                 { new StringContent(dto.slug ?? "slug"), "slug" },
-                { new StringContent(dto.userid.ToString()), "userid" },
-                { new StringContent(dto.roleid.ToString()), "roleid" }
+                { new StringContent(dto.user_id.ToString()), "user_id" },
+                { new StringContent(dto.role_id.ToString()), "role_id" }
             };
     }
 
@@ -36,8 +36,8 @@ public class AdminUserRoleControllerTests : BaseControllerTests<CreateUserRoleCo
                 { new StringContent(dto.id.ToString()), "id" },
                 { new StringContent(dto.name), "name" },
                 { new StringContent(dto.slug ?? "slug"), "slug" },
-                { new StringContent(dto.userid.ToString()), "userid" },
-                { new StringContent(dto.roleid.ToString()), "roleid" }
+                { new StringContent(dto.user_id.ToString()), "user_id" },
+                { new StringContent(dto.role_id.ToString()), "role_id" }
             };
     }
 

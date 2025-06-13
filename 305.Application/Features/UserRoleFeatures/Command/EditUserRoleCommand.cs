@@ -6,8 +6,8 @@ public class EditUserRoleCommand : EditCommand<string>
 {
     [Display(Name = "آیدی نقش")]
     [Required(ErrorMessage = "لطفا مقدار {0} را وارد کنید")]
-    public long roleid { get; set; }
+    public long role_id { get; set; }
     [Display(Name = "آیدی کاربر")]
     [Required(ErrorMessage = "لطفا مقدار {0} را وارد کنید")]
-    public long userid { get; set; }
+    public long user_id { get; set; }
 }

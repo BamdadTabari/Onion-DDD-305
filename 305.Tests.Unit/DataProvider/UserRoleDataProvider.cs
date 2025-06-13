@@ -12,8 +12,8 @@ public class UserRoleDataProvider
         {
             name = name,
             slug = slug,
-            userid = userId,
-            roleid = roleId
+            user_id = userId,
+            role_id = roleId
         };
 
     public static EditUserRoleCommand Edit(string name = "name", long id = 1,
@@ -24,8 +24,8 @@ public class UserRoleDataProvider
             name = name,
             slug = slug,
             updated_at = DateTime.UtcNow,
-            userid = userId,
-            roleid = roleId
+            user_id = userId,
+            role_id = roleId
         };
 
 
@@ -36,8 +36,8 @@ public class UserRoleDataProvider
             name = name,
             slug = slug,
             updated_at = DateTime.UtcNow,
-            userid = userId,
-            roleid = roleId
+            user_id = userId,
+            role_id = roleId
         };
 
     public static DeleteUserRoleCommand Delete(long id = 1)

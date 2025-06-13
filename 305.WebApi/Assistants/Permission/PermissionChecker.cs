@@ -32,7 +32,7 @@ public class PermissionChecker(
         if (!cache.TryGetValue(cacheKey, out HashSet<string>? permissions))
         {
             permissions = unitOfWork.UserRoleRepository.FindList(
-                    predicate: x => x.userid == userId,
+                    predicate: x => x.user_id == userId,
                     includeFunc: q => q.Include(ur => ur.role)
                         .ThenInclude(r => r.role_permissions)
                         .ThenInclude(rp => rp.permission))
