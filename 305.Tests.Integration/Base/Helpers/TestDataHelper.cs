@@ -2,6 +2,7 @@ using _305.Application.Base.Response;
 using _305.Application.Features.AdminAuthFeatures.Response;
 using _305.Application.Features.BlogCategoryFeatures.Response;
 using _305.Application.Features.RoleFeatures.Response;
+using _305.Application.Features.PermissionFeatures.Response;
 using Newtonsoft.Json;
 
 namespace _305.Tests.Integration.Base.Helpers;
@@ -74,7 +75,7 @@ public class TestDataHelper(HttpClient client)
             { new StringContent("slug"), "slug" },
         };
 
-        return (await CreateAndGetIdAsync<UserResponse>(
+        return (await CreateAndGetIdAsync<PermissionResponse>(
             "/api/admin/permission/create", dto,
             "/api/admin/permission/get?slug="))?.id ?? 0;
     }

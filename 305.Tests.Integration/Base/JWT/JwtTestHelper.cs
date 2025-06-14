@@ -7,7 +7,7 @@ using System.Text;
 
 namespace _305.Tests.Integration.Base.JWT;
 
-public class JwtTestHelper
+public class JwtTestHelper : IJwtProvider
 {
     private readonly JwtSettings _jwtSettings;
 

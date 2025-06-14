@@ -13,7 +13,8 @@ namespace _305.Tests.Integration.Base.Factory;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private const string TestDatabaseName = "TestDb_305";
+    // نام دیتابیس تستی در حالت in-memory
+    private const string InMemoryConnectionString = "DataSource=TestDb_305;Mode=Memory;Cache=Shared";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -27,13 +28,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             if (descriptor != null)
                 services.Remove(descriptor);
 
-            // اتصال به SQL Server محلی (یا Docker)
-            const string connectionString = $"Server=.;Database={TestDatabaseName};Integrated Security=True;Trusted_Connection=True;TrustServerCertificate=True";
-
-            // ثبت مجدد DbContext با SQL Server
+            // اتصال به دیتابیس SQLite در حافظه
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(connectionString);
+                options.UseSqlite(InMemoryConnectionString);
                 options.EnableSensitiveDataLogging(); // اختیاری برای دیباگ
             });
 
@@ -50,11 +48,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 
             try
             {
-                // حذف دیتابیس تستی قبلی برای شروع تمیز
+                // باز کردن اتصال و ایجاد دیتابیس در حافظه
+                db.Database.OpenConnection();
                 db.Database.EnsureDeleted();
-
-                // اعمال تمام مایگریشن‌ها (دقیق‌تر از EnsureCreated)
-                db.Database.Migrate();
+                db.Database.EnsureCreated();
             }
             catch (Exception ex)
             {

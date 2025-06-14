@@ -11,7 +11,7 @@ public abstract class BaseControllerTests<TCreateDto, TKey, TEditDto, TResponse>
     protected HttpClient Client = null!;
     protected CustomWebApplicationFactory Factory = null!;
     protected string BaseUrl = null!;
-    private JwtTestHelper _jwtHelper = null!;
+    private IJwtProvider _jwtHelper = null!;
 
     [SetUp]
     public void Setup()
@@ -32,14 +32,14 @@ public abstract class BaseControllerTests<TCreateDto, TKey, TEditDto, TResponse>
     protected abstract MultipartFormDataContent CreateCreateForm(TCreateDto dto);
     protected abstract MultipartFormDataContent CreateEditForm(TEditDto dto);
 
-    protected virtual async Task<ResponseDto<TKey>?> DeserializeCreateResponse(string json)
-        => await Task.Run(() => JsonConvert.DeserializeObject<ResponseDto<TKey>>(json));
+    protected virtual Task<ResponseDto<TKey>?> DeserializeCreateResponse(string json)
+        => Task.FromResult(JsonConvert.DeserializeObject<ResponseDto<TKey>>(json));
 
-    protected virtual async Task<ResponseDto<TResponse>?> DeserializeEntityResponse(string json)
-        => await Task.Run(() => JsonConvert.DeserializeObject<ResponseDto<TResponse>>(json));
+    protected virtual Task<ResponseDto<TResponse>?> DeserializeEntityResponse(string json)
+        => Task.FromResult(JsonConvert.DeserializeObject<ResponseDto<TResponse>>(json));
 
-    protected virtual async Task<ResponseDto<PaginatedList<TResponse>>?> DeserializePaginatedResponse(string json)
-        => await Task.Run(() => JsonConvert.DeserializeObject<ResponseDto<PaginatedList<TResponse>>>(json));
+    protected virtual Task<ResponseDto<PaginatedList<TResponse>>?> DeserializePaginatedResponse(string json)
+        => Task.FromResult(JsonConvert.DeserializeObject<ResponseDto<PaginatedList<TResponse>>>(json));
 
     public async Task<TKey> CreateEntityAsync(TCreateDto dto)
     {

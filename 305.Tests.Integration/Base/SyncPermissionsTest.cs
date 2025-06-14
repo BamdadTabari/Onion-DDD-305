@@ -23,7 +23,7 @@ public class SyncPermissionsTest
 
         var db = _scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await db.Database.EnsureDeletedAsync(); // پاک‌سازی دیتابیس
-        await db.Database.MigrateAsync();       // اعمال مایگریشن برای ایجاد جدول Permission
+        await db.Database.EnsureCreatedAsync(); // ایجاد جداول موردنیاز
 
         var seeder = new PermissionSeeder(_unitOfWork);
         await seeder.SyncPermissionsAsync();    // اجرای سیدر فقط اینجا
