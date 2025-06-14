@@ -7,6 +7,7 @@ using _305.BuildingBlocks.Configurations;
 using _305.BuildingBlocks.Security;
 using _305.Application.Helpers;
 using _305.BuildingBlocks.Helper;
+using _305.BuildingBlocks.IService;
 using _305.Domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -17,7 +18,8 @@ namespace _305.Application.Features.AdminAuthFeatures.Handler;
 public class AdminLoginCommandHandler(
     IUnitOfWork unitOfWork,
     IJwtService jwtService,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IDateTimeProvider dateTimeProvider
 ) : IRequestHandler<AdminLoginCommand, ResponseDto<LoginResponse>>
 {
     public static readonly JwtConfig Config = new();
@@ -39,7 +41,7 @@ public class AdminLoginCommandHandler(
 
             // موفقیت در ورود
             user.failed_login_count = 0;
-            user.last_login_date_time = DateTime.Now;
+            user.last_login_date_time = dateTimeProvider.Now;
             var role = await unitOfWork.UserRoleRepository.FindListAsync(x => x.userid == user.id, cancellationToken: cancellationToken);
             var token = await JwtTokenHelper.GenerateUniqueAccessToken(
                 jwtService,
@@ -50,7 +52,7 @@ public class AdminLoginCommandHandler(
 
 
             user.refresh_token = refreshToken;
-            user.refresh_token_expiry_time = DateTime.Now.Add(Config.AdminRefreshTokenLifetime);
+            user.refresh_token_expiry_time = dateTimeProvider.Now.Add(Config.AdminRefreshTokenLifetime);
 
             unitOfWork.UserRepository.Update(user);
             await unitOfWork.CommitAsync(cancellationToken);
@@ -86,8 +88,8 @@ public class AdminLoginCommandHandler(
     /// <summary>
     /// بررسی وضعیت قفل بودن حساب
     /// </summary>
-    private static bool IsAccountLocked(User user) =>
-        user.is_locked_out || user.lock_out_end_time > DateTime.Now;
+    private bool IsAccountLocked(User user) =>
+        user.is_locked_out || user.lock_out_end_time > dateTimeProvider.Now;
 
     /// <summary>
     /// مدیریت خطا در صورت وارد کردن رمز نادرست
@@ -98,7 +100,7 @@ public class AdminLoginCommandHandler(
         if (user.failed_login_count >= lockOutConfig.FailedLoginLimit)
         {
             user.is_locked_out = true;
-            user.lock_out_end_time = DateTime.Now.Add(lockOutConfig.LockoutDuration); // قفل موقت
+            user.lock_out_end_time = dateTimeProvider.Now.Add(lockOutConfig.LockoutDuration); // قفل موقت
         }
 
         unitOfWork.UserRepository.Update(user);

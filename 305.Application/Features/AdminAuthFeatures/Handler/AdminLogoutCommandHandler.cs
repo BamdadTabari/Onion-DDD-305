@@ -7,13 +7,15 @@ using _305.Domain.Entity;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Serilog;
+using _305.BuildingBlocks.IService;
 using System.Security.Claims;
 
 namespace _305.Application.Features.AdminAuthFeatures.Handler;
 
 public class AdminLogoutCommandHandler(
     IUnitOfWork unitOfWork,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IDateTimeProvider dateTimeProvider
 ) : IRequestHandler<AdminLogoutCommand, ResponseDto<string>>
 {
     public static readonly JwtConfig Config = new();
@@ -42,7 +44,7 @@ public class AdminLogoutCommandHandler(
                 await unitOfWork.TokenBlacklistRepository.AddAsync(new BlacklistedToken
                 {
                     token = token,
-                    expiry_date = DateTime.Now.AddDays(Config.AccessTokenLifetime.TotalDays),
+                    expiry_date = dateTimeProvider.Now.AddDays(Config.AccessTokenLifetime.TotalDays),
                     slug = SlugHelper.GenerateSlug(token)
                 });
 

@@ -1,6 +1,6 @@
 ﻿using System.Text;
-using Microsoft.Extensions.Configuration;
-using System.IO;
+using _305.BuildingBlocks.IService;
+using _305.WebApi.Assistants.Logging;
 
 namespace _305.WebApi.Assistants.Middleware;
 
@@ -10,14 +10,14 @@ namespace _305.WebApi.Assistants.Middleware;
 public class LoggingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly string _logPath;
+    private readonly ILogWriter _logWriter;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public LoggingMiddleware(RequestDelegate next, IConfiguration configuration)
+    public LoggingMiddleware(RequestDelegate next, ILogWriter logWriter, IDateTimeProvider dateTimeProvider)
     {
         _next = next;
-        _logPath = configuration["RequestLogging:FilePath"] ??
-                    Path.Combine(Directory.GetCurrentDirectory(), "logs", "requests.txt");
-        EnsureLogDirectoryExists(_logPath);
+        _logWriter = logWriter;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     /// <summary>
@@ -25,29 +25,8 @@ public class LoggingMiddleware
     /// </summary>
     public async Task Invoke(HttpContext context)
     {
-        var logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {context.Request.Method} {context.Request.Path} | Origin: {context.Request.Headers["Origin"]}\n";
-        var logBytes = Encoding.UTF8.GetBytes(logLine);
-
-        await WriteLogAsync(logBytes);
+        var logLine = $"{_dateTimeProvider.Now:yyyy-MM-dd HH:mm:ss} | {context.Request.Method} {context.Request.Path} | Origin: {context.Request.Headers["Origin"]}\n";
+        await _logWriter.WriteAsync(logLine);
         await _next(context);
-    }
-
-    /// <summary>
-    /// اطمینان از وجود پوشه لاگ.
-    /// </summary>
-    private static void EnsureLogDirectoryExists(string logPath)
-    {
-        var directory = Path.GetDirectoryName(logPath);
-        if (!Directory.Exists(directory))
-            Directory.CreateDirectory(directory!);
-    }
-
-    /// <summary>
-    /// نوشتن لاگ در فایل به صورت async.
-    /// </summary>
-    private async Task WriteLogAsync(byte[] logBytes)
-    {
-        await using var stream = new FileStream(_logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite, 4096, useAsync: true);
-        await stream.WriteAsync(logBytes, 0, logBytes.Length);
     }
 }

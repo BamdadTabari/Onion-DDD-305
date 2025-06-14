@@ -9,13 +9,15 @@ using _305.BuildingBlocks.Helper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Serilog;
+using _305.BuildingBlocks.IService;
 
 namespace _305.Application.Features.AdminAuthFeatures.Handler;
 
 public class AdminRefreshCommandHandler(
     IUnitOfWork unitOfWork,
     IJwtService jwtService,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    IDateTimeProvider dateTimeProvider
 ) : IRequestHandler<AdminRefreshCommand, ResponseDto<LoginResponse>>
 {
     public static readonly JwtConfig Config = new();
@@ -28,7 +30,7 @@ public class AdminRefreshCommandHandler(
             if (refreshToken != null)
             {
                 var user = await unitOfWork.UserRepository.FindSingle(x => x.refresh_token == refreshToken);
-                if (user == null || user.refresh_token_expiry_time < DateTime.Now)
+                if (user == null || user.refresh_token_expiry_time < dateTimeProvider.Now)
                 {
                     CookieHelper.DeleteJwtCookie(httpContextAccessor.HttpContext!.Response);
                     return Responses.Fail<LoginResponse>(null, message: "توکن نامعتبر است و یا منقضی شده است", code: 401);

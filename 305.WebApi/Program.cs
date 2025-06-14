@@ -6,6 +6,7 @@ using _305.BuildingBlocks.Service;
 using _305.BuildingBlocks.Helper;
 using _305.Infrastructure.Persistence;
 using _305.Infrastructure.Service;
+using _305.WebApi.Assistants.Logging;
 using _305.WebApi.Assistants.Middleware;
 using _305.WebApi.Assistants.Permission;
 using Hangfire;
@@ -39,6 +40,8 @@ builder.Services.Configure<LockoutConfig>(
     builder.Configuration.GetSection(LockoutConfig.SectionName));
 builder.Services.Configure<SmsConfig>(
     builder.Configuration.GetSection(SmsConfig.SectionName));
+builder.Services.Configure<RequestLoggingConfig>(
+    builder.Configuration.GetSection(RequestLoggingConfig.SectionName));
 
 // ─────────────── Services and Repositories ───────────────
 builder.Services.AddHttpContextAccessor();
@@ -48,6 +51,12 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<PermissionSeeder>();
 builder.Services.AddScoped<IPermissionChecker, PermissionChecker>();
+builder.Services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
+builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
+if (!builder.Environment.IsEnvironment("Test"))
+{
+    builder.Services.AddHostedService<PermissionSeedHostedService>();
+}
 
 
 // JWT Config
@@ -202,21 +211,4 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-if (!builder.Environment.IsEnvironment("Test"))
-{
-    app.Lifetime.ApplicationStarted.Register(async void () =>
-    {
-        try
-        {
-            using var scope = app.Services.CreateScope();
-            var seeder = scope.ServiceProvider.GetRequiredService<PermissionSeeder>();
-            await seeder.SyncPermissionsAsync();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "error during seeding permissions");
-        }
-    });
-}
 app.Run();

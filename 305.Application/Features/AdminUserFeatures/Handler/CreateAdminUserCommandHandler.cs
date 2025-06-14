@@ -7,10 +7,11 @@ using _305.BuildingBlocks.Helper;
 using _305.BuildingBlocks.Security;
 using _305.Domain.Entity;
 using MediatR;
+using _305.BuildingBlocks.IService;
 
 namespace _305.Application.Features.AdminUserFeatures.Handler;
 
-public class CreateAdminUserCommandHandler(IUnitOfWork unitOfWork)
+public class CreateAdminUserCommandHandler(IUnitOfWork unitOfWork, IDateTimeProvider dateTimeProvider)
     : IRequestHandler<CreateAdminUserCommand, ResponseDto<string>>
 {
     private readonly CreateHandler _handler = new(unitOfWork);
@@ -51,15 +52,15 @@ public class CreateAdminUserCommandHandler(IUnitOfWork unitOfWork)
                    password_hash = PasswordHasher.Hash(request.password),
                    concurrency_stamp = StampGenerator.CreateSecurityStamp(32),
                    security_stamp = StampGenerator.CreateSecurityStamp(32),
-                   created_at = DateTime.UtcNow,
-                   updated_at = DateTime.UtcNow,
+                   created_at = dateTimeProvider.UtcNow,
+                   updated_at = dateTimeProvider.UtcNow,
                    failed_login_count = 0,
                    is_active = true,
                    is_delete_able = true,
                    is_locked_out = false,
                    is_mobile_confirmed = true,
-                   last_login_date_time = DateTime.Now,
-                   lock_out_end_time = DateTime.Now,
+                   last_login_date_time = dateTimeProvider.Now,
+                   lock_out_end_time = dateTimeProvider.Now,
                    mobile = "",
                    slug = slug,
                };
