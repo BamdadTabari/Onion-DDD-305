@@ -64,4 +64,9 @@ public class BaseEntity : IBaseEntity
     /// افزودن رویداد دامنه به لیست رویدادها
     /// </summary>
     public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <summary>
+    /// پاک کردن رویدادهای دامنه پس از انتشار
+    /// </summary>
+    public void ClearDomainEvents() => _domainEvents.Clear();
 }

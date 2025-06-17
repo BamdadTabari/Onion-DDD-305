@@ -36,4 +36,9 @@ public interface IBaseEntity
     /// لیست رویدادهای دامنه مرتبط با این موجودیت
     /// </summary>
     IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+
+    /// <summary>
+    /// پاک‌سازی رویدادهای دامنه پس از انتشار
+    /// </summary>
+    void ClearDomainEvents();
 }
