@@ -18,7 +18,7 @@ public static class SlugHelper
     public static string GenerateSlug(string phrase)
     {
         if (string.IsNullOrWhiteSpace(phrase))
-            return string.Empty;
+            throw new ArgumentException("عبارت ورودی نمیتواند خالی باشد", nameof(phrase));
 
         var result = phrase;
 
@@ -36,14 +36,26 @@ public static class SlugHelper
     /// <summary>
     /// تبدیل ارقام فارسی (۱۲۳) به انگلیسی (123)
     /// </summary>
-    private static string ConvertPersianDigitsToEnglish(string input)
+    public static string ConvertPersianDigitsToEnglish(string input)
     {
-        var persianDigits = new[] { '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹' };
-        for (var i = 0; i < persianDigits.Length; i++)
+        if (string.IsNullOrEmpty(input))
+            return input;
+
+        var result = new StringBuilder(input.Length);
+
+        foreach (var character in input)
         {
-            input = input.Replace(persianDigits[i], i.ToString()[0]);
+            if (character >= '۰' && character <= '۹')
+            {
+                result.Append((char)('0' + (character - '۰')));
+            }
+            else
+            {
+                result.Append(character);
+            }
         }
-        return input;
+
+        return result.ToString();
     }
 
     /// <summary>

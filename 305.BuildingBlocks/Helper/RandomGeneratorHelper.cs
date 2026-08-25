@@ -24,15 +24,12 @@ public static class RandomGenerator
     /// <exception cref="ArgumentException">اگر کاراکتر مجاز خالی باشد یا پیشوند بیش از طول باشد</exception>
     public static string GenerateString(int length, string allowedCharacters, string prefix = "")
     {
-        if (length <= 0)
-            throw new ArgumentOutOfRangeException(nameof(length), "طول رشته باید بیشتر از صفر باشد.");
+        var actualLength = length - prefix.Length;
+        if (actualLength <= 0)
+            throw new ArgumentException("طول رشته باید بزرگتر از طول پیشوند و بزرگتر از صفر باشد باشد.", nameof(length));
 
         if (string.IsNullOrWhiteSpace(allowedCharacters))
             throw new ArgumentException("لیست کاراکترهای مجاز نباید خالی باشد.", nameof(allowedCharacters));
-
-        var actualLength = length - prefix.Length;
-        if (actualLength <= 0)
-            throw new ArgumentException("طول رشته باید بزرگتر از طول پیشوند باشد.", nameof(length));
 
         var result = new StringBuilder(length);
         result.Append(prefix);
@@ -75,6 +72,9 @@ public static class RandomGenerator
     /// <returns>کدی عددی به‌صورت رشته</returns>
     public static string GenerateCode(int length = 8)
     {
+        if (length < 8)
+            throw new ArgumentOutOfRangeException(nameof(length), "طول کد نمیتواند کوچکتر از 8 باشد");
+
         return GenerateString(length, AllowedCharacters.Numeric0);
     }
 }
