@@ -3,12 +3,15 @@ using _305.Application.IUOW;
 using _305.Domain.Entity;
 using _305.Infrastructure.BaseRepository;
 using _305.Infrastructure.Persistence;
+using _305.Infrastructure.DomainEvents;
+using MediatR;
 
 namespace _305.Infrastructure.UnitOfWork;
 public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
 
     private readonly ApplicationDbContext _context;
+    private readonly IMediator? _mediator;
 
     //Lazy Initialization * (توضیحات پایین صفحه)
     private readonly Lazy<IRepository<BlogCategory>> _blogCategoryRepository;
@@ -20,9 +23,10 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IRepository<User>> _userRepository;
     private readonly Lazy<IRepository<UserRole>> _userRoleRepository;
 
-    public UnitOfWork(ApplicationDbContext context)
+    public UnitOfWork(ApplicationDbContext context, IMediator? mediator = null)
     {
         _context = context;
+        _mediator = mediator;
 
         _blogCategoryRepository = new Lazy<IRepository<BlogCategory>>(() => new Repository<BlogCategory>(_context));
         _blogRepository = new Lazy<IRepository<Blog>>(() => new Repository<Blog>(_context));
@@ -59,6 +63,11 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         {
             // ذخیره‌سازی تمام تغییرات انجام‌شده در Context در پایگاه داده
             await _context.SaveChangesAsync(cancellationToken);
+
+            if (_mediator is not null)
+            {
+                await DomainEventDispatcher.DispatchEventsAsync(_context, _mediator, cancellationToken);
+            }
 
             // در صورت موفقیت‌آمیز بودن ذخیره‌سازی، تراکنش را تأیید کن (Commit)
             await transaction.CommitAsync(cancellationToken);
